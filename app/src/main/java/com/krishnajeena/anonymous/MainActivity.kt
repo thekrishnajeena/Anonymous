@@ -5,16 +5,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.krishnajeena.anonymous.ui.theme.AnonymousTheme
-import dagger.hilt.android.HiltAndroidApp
+import androidx.activity.viewModels
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.krishnajeena.anonymous.app.AppViewModel
+import com.krishnajeena.anonymous.domain.AuthState
+import com.krishnajeena.anonymous.feature_auth.AuthViewModel
+import com.krishnajeena.anonymous.ui.auth.AuthScreen
+import com.krishnajeena.anonymous.ui.feed.FeedScreen
+import com.krishnajeena.anonymous.ui.splash.SplashScreen
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.HiltAndroidApp
 
 
 @HiltAndroidApp
@@ -22,6 +23,11 @@ class App : Application()
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private val appViewModel: AppViewModel by viewModels()
+    private val authViewModel: AuthViewModel by viewModels()
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         setTheme(R.style.Theme_Anonymous_Splash)
@@ -29,13 +35,24 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            AnonymousTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 
-                    Text(text = "Hello World", modifier = Modifier.padding(innerPadding))
+            val authState by appViewModel.authState.collectAsState()
 
-                }
+            when (authState) {
+                AuthState.Loading -> SplashScreen()
+
+                AuthState.Unauthenticated ->
+                    AuthScreen(
+                        viewModel = authViewModel,
+                        onAuthSuccess = { uid ->
+                            appViewModel.onLoginSuccess(uid)
+                        }
+                    )
+
+                is AuthState.Authenticated ->
+                    FeedScreen { appViewModel.logout() }
             }
+
         }
     }
 }
