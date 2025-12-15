@@ -77,6 +77,9 @@ dependencies {
 
     implementation("com.google.android.material:material:1.13.0")
 
+    implementation("androidx.navigation:navigation-compose:2.9.6")
+    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
+
 
     // -------- Coroutines (Firebase Tasks) --------
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")

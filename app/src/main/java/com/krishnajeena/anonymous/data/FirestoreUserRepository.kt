@@ -1,6 +1,7 @@
 package com.krishnajeena.anonymous.data
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.krishnajeena.anonymous.domain.user.User
 import kotlinx.coroutines.tasks.await
 
 class FirestoreUserRepository(
@@ -34,5 +35,20 @@ class FirestoreUserRepository(
 
         ref.set(user).await()
 
+    }
+
+    suspend fun getUser(uid: String): User{
+        val snapshot = firestore
+            .collection("users")
+            .document(uid)
+            .get()
+            .await()
+
+        return User(
+            uid = uid,
+            displayName = snapshot.getString("displayName") ?: "",
+            tag = snapshot.getString("tag") ?: "",
+            photoUrl = snapshot.getString("photoUrl")
+        )
     }
 }
