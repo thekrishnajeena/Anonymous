@@ -6,25 +6,31 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -95,7 +101,13 @@ fun MainScaffold(
     Scaffold(
         bottomBar = {
             BottomNavBar(navController)
-        }
+        },
+        floatingActionButton = {
+            CreatePostFab{
+                navController.navigate("create")
+            }
+        },
+        floatingActionButtonPosition = FabPosition.Center,
     ) { innerPadding ->
 
         MainNavHost(
@@ -107,12 +119,31 @@ fun MainScaffold(
 }
 
 @Composable
+fun CreatePostFab(
+    onClick: () -> Unit
+) {
+    FloatingActionButton(
+        onClick = onClick,
+        modifier = Modifier.offset(y=38.dp),
+        shape = CircleShape,
+        containerColor = MaterialTheme.colorScheme.primary,
+        elevation = FloatingActionButtonDefaults.elevation(8.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = "Create Post"
+        )
+    }
+}
+
+
+@Composable
 fun BottomNavBar(navController: NavHostController) {
 
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
-    NavigationBar {
+    NavigationBar(modifier = Modifier) {
         MainScreens.entries.forEach { screen ->
             NavigationBarItem(
                 selected = currentRoute == screen.route,
@@ -139,7 +170,6 @@ enum class MainScreens(
     val label: String
 ) {
     Feed("feed", Icons.Default.Home, "Feed"),
-    Create("create", Icons.Default.Create, "Create"),
     Profile("profile", Icons.Default.Person, "Profile")
 }
 
@@ -156,11 +186,25 @@ fun MainNavHost(
     ) {
 
         composable(MainScreens.Feed.route) {
-            FeedScreen(onLogout = onLogout)
+            FeedScreen(onSearchClick = {})
         }
 
-        composable(MainScreens.Create.route) {
-            CreateScreen()
+        composable("create",
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { it},
+                    animationSpec = tween(300)
+                )
+            },
+            exitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(300)
+                )
+            }) {
+            CreateScreen(
+                onCancel = { navController.popBackStack()}
+                    , onPostSuccess = { navController.popBackStack()})
         }
 
         composable(MainScreens.Profile.route) {
