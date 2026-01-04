@@ -68,7 +68,7 @@ fun FeedScreen(
     val posts by viewModel.posts.collectAsState()
 
     Scaffold(topBar = {
-        FeedTopBar { onSearchClick }
+        FeedTopBar { onSearchClick() }
     }){
         inner ->
 
@@ -96,7 +96,8 @@ fun FeedScreen(
 @Composable
 fun PostItem(
     post: Post,
-    onToggleSave: (Post) -> Unit
+    onToggleSave: (Post) -> Unit,
+    withSaveButton: Boolean = true
 ) {
     Column(
         modifier = Modifier
@@ -118,6 +119,7 @@ fun PostItem(
                 color = MaterialTheme.colorScheme.primary
             )
 
+            if(withSaveButton) {
             IconButton(onClick = { onToggleSave(post) }) {
                 Icon(
                     painter = if (post.isSaved)
@@ -126,7 +128,7 @@ fun PostItem(
                         painterResource(R.drawable.bookmark),
                     contentDescription = "Save"
                 )
-            }
+            }}
         }
 
         Spacer(Modifier.height(6.dp))

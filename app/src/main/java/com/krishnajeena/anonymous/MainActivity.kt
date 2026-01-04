@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -32,13 +33,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.krishnajeena.anonymous.app.AppViewModel
 import com.krishnajeena.anonymous.domain.AuthState
 import com.krishnajeena.anonymous.feature_auth.AuthViewModel
+import com.krishnajeena.anonymous.feature_public_profile.PublicProfileScreen
+import com.krishnajeena.anonymous.feature_search.SearchScreen
 import com.krishnajeena.anonymous.ui.auth.AuthScreen
 import com.krishnajeena.anonymous.ui.create.CreateScreen
 import com.krishnajeena.anonymous.ui.feed.FeedScreen
@@ -170,7 +175,17 @@ enum class MainScreens(
     val label: String
 ) {
     Feed("feed", Icons.Default.Home, "Feed"),
-    Profile("profile", Icons.Default.Person, "Profile")
+    Profile("profile", Icons.Default.Person, "Profile"),
+}
+
+enum class InternalScreen(
+    val route: String,
+    val icon: ImageVector,
+    val label: String
+){
+    Search("search", Icons.Default.Search, "Search"),
+    PublicProfile("public_profile/{uid}", Icons.Default.Person, "Public Profile")
+
 }
 
 @Composable
@@ -186,7 +201,28 @@ fun MainNavHost(
     ) {
 
         composable(MainScreens.Feed.route) {
-            FeedScreen(onSearchClick = {})
+            FeedScreen(onSearchClick = {
+                navController.navigate(InternalScreen.Search.route)
+            })
+        }
+
+        composable(InternalScreen.Search.route) {
+            SearchScreen(
+                onBack = {
+                    navController.popBackStack()
+                },
+                onUserClick = {
+                    uid ->
+                    navController.navigate("profile/$uid")
+                }
+            )
+        }
+
+        composable(route = "profile/{uid}",
+            arguments = listOf(navArgument("uid"){ type = NavType.StringType})) {
+            PublicProfileScreen(
+                onBack = {navController.popBackStack()}
+            )
         }
 
         composable("create",

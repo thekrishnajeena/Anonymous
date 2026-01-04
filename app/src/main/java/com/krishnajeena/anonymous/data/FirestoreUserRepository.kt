@@ -53,6 +53,27 @@ class FirestoreUserRepository(
         )
     }
 
+    suspend fun searchUsersByTag(query: String): List<User> {
+        if(query.isBlank()) return emptyList()
+
+        val snapshot = firestore.collection("users")
+            .orderBy("tag")
+            .startAt(query)
+            .endAt(query + "\uf8ff")
+            .limit(20)
+            .get()
+            .await()
+
+        return snapshot.documents.mapNotNull{ doc ->
+            User(
+                uid = doc.id,
+                tag = doc.getString("tag") ?: return@mapNotNull null,
+                displayName = doc.getString("displayName") ?: "",
+                photoUrl = doc.getString("photoUrl")
+            )
+        }
+    }
+
     suspend fun getCurrentUser(): User? {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return null
         return getUser(uid)
