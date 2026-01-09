@@ -82,6 +82,8 @@ dependencies {
 
     implementation("io.coil-kt:coil-compose:2.6.0")
 
+    implementation("com.airbnb.android:lottie-compose:6.3.0")
+
 
     // -------- Coroutines (Firebase Tasks) --------
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")

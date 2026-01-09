@@ -41,6 +41,26 @@ class FirestorePostRepository(
         awaitClose { listener.remove() }
     }
 
+    suspend fun fetchFeedPage(
+        lastPost: DocumentSnapshot?,
+        pageSize: Long = 20
+    ): Pair<List<Post>, DocumentSnapshot?> {
+
+        var query = firestore.collection("posts")
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .limit(pageSize)
+
+        if (lastPost != null) {
+            query = query.startAfter(lastPost)
+        }
+
+        val snapshot = query.get().await()
+        val posts = snapshot.documents.mapNotNull { it.toPost() }
+        val newLast = snapshot.documents.lastOrNull()
+
+        return posts to newLast
+    }
+
     fun observeUserPosts(uid: String): Flow<List<Post>> =
         firestore.collection("posts")
             .whereEqualTo("authorUid", uid)
