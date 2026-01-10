@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -15,19 +16,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -73,7 +70,7 @@ fun ProfileScreen(modifier: Modifier = Modifier, onLogout: () -> Unit,
 
                 is ProfileUiState.Success -> {
                     val user = (uiState as ProfileUiState.Success).user
-                    ProfileContent(user)
+                    ProfileContent(user, viewModel)
                 }
 
                 is ProfileUiState.Error -> {
@@ -139,7 +136,8 @@ fun ProfileMenuButton(
 
 @Composable
 fun ProfileContent(
-    user: User
+    user: User,
+    viewModel: ProfileViewModel
 ) {
 
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -202,6 +200,28 @@ fun ProfileContent(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+
+        Spacer(Modifier.height(2.dp))
+
+        Row(modifier = Modifier, horizontalArrangement = Arrangement.SpaceBetween
+            , verticalAlignment = Alignment.CenterVertically) {
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(2.dp)){
+                Text(text = "Followers")
+                Text(text = "${user.followersCount}")
+            }
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(2.dp)){
+                Text(text = "Following")
+                Text(text = "${user.followingCount}")
+            }
+
+        }
+
 
         Spacer(Modifier.height(32.dp))
 

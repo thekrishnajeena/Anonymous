@@ -201,28 +201,32 @@ fun GlassPostContainer(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        Color.White.copy(alpha = 0.18f),
-                        Color.White.copy(alpha = 0.08f)
-                    )
-                )
-            )
-            .border(
-                width = 1.dp,
-                color = Color.White.copy(alpha = 0.45f),
-                shape = RoundedCornerShape(20.dp)
-            )
-            .padding(10.dp)
-    ) {
-        content()
-    }
+
+    Box(modifier = modifier
+        .fillMaxWidth()
+        .clip(RoundedCornerShape(20.dp))
+        .border(
+            width = 1.dp,
+            color = Color.White.copy(alpha = 0.55f),
+            shape = RoundedCornerShape(20.dp)
+        )){
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .matchParentSize()
+                .clip(RoundedCornerShape(20.dp))
+                .background(Color.Magenta.copy(alpha=0.1f))
+                .blur(45.dp)
+                .padding(10.dp)
+        )
+
+
+        Box(
+            modifier = Modifier.padding(10.dp)
+        ) {
+            content()
+        }
 }
 
-
+}
 

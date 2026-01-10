@@ -31,7 +31,9 @@ class FirestoreUserRepository(
             "photoUrl" to photoUrl,
             "provider" to "google",
             "createdAt" to System.currentTimeMillis(),
-            "lastLoginAt" to System.currentTimeMillis()
+            "lastLoginAt" to System.currentTimeMillis(),
+            "followingCount" to 0,
+            "followersCount" to 0,
         )
 
         ref.set(user).await()
@@ -49,7 +51,9 @@ class FirestoreUserRepository(
             uid = uid,
             displayName = snapshot.getString("displayName") ?: "",
             tag = snapshot.getString("tag") ?: "",
-            photoUrl = snapshot.getString("photoUrl")
+            photoUrl = snapshot.getString("photoUrl"),
+            followersCount = snapshot.getLong("followers") ?: 0,
+            followingCount = snapshot.getLong("following") ?: 0
         )
     }
 
@@ -69,7 +73,9 @@ class FirestoreUserRepository(
                 uid = doc.id,
                 tag = doc.getString("tag") ?: return@mapNotNull null,
                 displayName = doc.getString("displayName") ?: "",
-                photoUrl = doc.getString("photoUrl")
+                photoUrl = doc.getString("photoUrl"),
+                followersCount = doc.getLong("followersCount") ?: 0,
+                followingCount = doc.getLong("followingCount") ?: 0
             )
         }
     }
