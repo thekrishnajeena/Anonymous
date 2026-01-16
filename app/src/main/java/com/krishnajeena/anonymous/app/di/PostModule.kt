@@ -2,6 +2,7 @@ package com.krishnajeena.anonymous.app.di
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.krishnajeena.anonymous.data.post.FirestorePostRepository
+import com.krishnajeena.anonymous.data.post.LikeRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,5 +16,10 @@ object PostModule {
     fun providePostRepository(
         firestore: FirebaseFirestore
     ): FirestorePostRepository = FirestorePostRepository(firestore)
+
+    @Provides
+    fun provideLikeRepository(
+        firestore: FirebaseFirestore
+    ): LikeRepository = LikeRepository(firestore)
 
 }

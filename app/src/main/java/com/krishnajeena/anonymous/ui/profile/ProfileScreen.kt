@@ -264,7 +264,8 @@ fun MyPostsList(uid: String, viewModel: ProfileViewModel = hiltViewModel(),
                         feedViewModel.viewModelScope.launch {
                             feedViewModel.toggleSave(p)
                         }
-                    })
+                    },
+                    onToggleLike = {feedViewModel.toggleLike(it)})
             }
         }
     }
@@ -292,7 +293,8 @@ fun SavedPostsList(uid: String, viewModel: ProfileViewModel = hiltViewModel(),
                         feedViewModel.viewModelScope.launch {
                             feedViewModel.toggleSave(p)
                         }
-                    })
+                    },
+                    onToggleLike = {feedViewModel.toggleLike(it)})
             }
         }
     }

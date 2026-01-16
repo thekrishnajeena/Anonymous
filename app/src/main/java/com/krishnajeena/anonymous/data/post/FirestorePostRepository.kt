@@ -31,7 +31,8 @@ class FirestorePostRepository(
                         authorUid = doc.getString("authorUid") ?: return@mapNotNull null,
                         authorTag = doc.getString("authorTag") ?: "unknown",
                         content = doc.getString("content") ?: "",
-                        createdAt = doc.getLong("createdAt") ?: 0L
+                        createdAt = doc.getLong("createdAt") ?: 0L,
+                        likesCount = doc.getLong("likesCount") ?: 0L
                     )
                 } ?: emptyList()
 
@@ -145,7 +146,8 @@ fun DocumentSnapshot.toPost(): Post? {
         authorUid = getString("authorUid") ?: return null,
         authorTag = getString("authorTag") ?: "",
         content = getString("content") ?: "",
-        createdAt = getLong("createdAt") ?: 0L
+        createdAt = getLong("createdAt") ?: 0L,
+        likesCount = getLong("likesCount") ?: 0L,
     )
 }
 

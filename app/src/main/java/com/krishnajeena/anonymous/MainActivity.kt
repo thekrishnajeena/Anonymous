@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -42,6 +43,7 @@ import androidx.navigation.navArgument
 import com.krishnajeena.anonymous.app.AppViewModel
 import com.krishnajeena.anonymous.domain.AuthState
 import com.krishnajeena.anonymous.feature_auth.AuthViewModel
+import com.krishnajeena.anonymous.feature_feed.FeedViewModel
 import com.krishnajeena.anonymous.feature_public_profile.PublicProfileScreen
 import com.krishnajeena.anonymous.feature_search.SearchScreen
 import com.krishnajeena.anonymous.ui.auth.AuthScreen
@@ -153,12 +155,16 @@ fun BottomNavBar(navController: NavHostController) {
             NavigationBarItem(
                 selected = currentRoute == screen.route,
                 onClick = {
-                    navController.navigate(screen.route) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
+                    if (currentRoute == screen.route) {
+                        navController.popBackStack()
+                    } else {
+                        navController.navigate(screen.route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
                     }
                 },
                 icon = { Icon(screen.icon, contentDescription = screen.label) },
@@ -184,7 +190,7 @@ enum class InternalScreen(
     val label: String
 ){
     Search("search", Icons.Default.Search, "Search"),
-    PublicProfile("public_profile/{uid}", Icons.Default.Person, "Public Profile")
+    PublicProfile("profile/{uid}", Icons.Default.Person, "Public Profile")
 
 }
 
@@ -194,6 +200,8 @@ fun MainNavHost(
     modifier: Modifier = Modifier,
     onLogout: () -> Unit
 ) {
+
+    val feedViewModel: FeedViewModel = hiltViewModel()
     NavHost(
         navController = navController,
         startDestination = MainScreens.Feed.route,
@@ -203,7 +211,8 @@ fun MainNavHost(
         composable(MainScreens.Feed.route) {
             FeedScreen(onSearchClick = {
                 navController.navigate(InternalScreen.Search.route)
-            })
+            },
+               viewModel = feedViewModel )
         }
 
         composable(InternalScreen.Search.route) {
@@ -218,10 +227,11 @@ fun MainNavHost(
             )
         }
 
-        composable(route = "profile/{uid}",
+        composable(route = InternalScreen.PublicProfile.route,
             arguments = listOf(navArgument("uid"){ type = NavType.StringType})) {
             PublicProfileScreen(
-                onBack = {navController.popBackStack()}
+                onBack = {navController.popBackStack()},
+                feedViewModel = feedViewModel
             )
         }
 

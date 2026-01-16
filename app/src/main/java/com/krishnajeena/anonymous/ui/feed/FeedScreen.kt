@@ -1,6 +1,7 @@
 package com.krishnajeena.anonymous.ui.feed
 
 import android.text.format.DateUtils
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -54,6 +55,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.krishnajeena.anonymous.R
 import com.krishnajeena.anonymous.domain.post.Post
 import com.krishnajeena.anonymous.feature_feed.FeedViewModel
+import com.krishnajeena.anonymous.feature_feed.FeedViewModel.FeedUiState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -82,47 +84,59 @@ fun FeedTopBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
-    viewModel: FeedViewModel = hiltViewModel(),
+    viewModel: FeedViewModel,
     onSearchClick: () -> Unit
 ) {
-    val posts by viewModel.posts.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
-    val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.sparklebg)
-    )
+    LaunchedEffect(Unit) {
+        viewModel.loadInitialFeed()
+    }
 
     Scaffold(
         topBar = { FeedTopBar(onSearchClick) },
         containerColor = Color.Transparent
-    ) { inner ->
+    ) { innerPadding ->
 
-        Box(Modifier.fillMaxSize()) {
+        when (uiState) {
 
-            LottieAnimation(
-                composition = composition,
-                iterations = LottieConstants.IterateForever,
-                modifier = Modifier.fillMaxSize()
-            )
+            is FeedViewModel.FeedUiState.Loading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) { Text("Loading…") }
+            }
 
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(inner),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                items(posts, key = { it.id }) { post ->
-                    PostItem(
-                        post = post,
-                        onToggleSave = { viewModel.viewModelScope.launch {
-                            viewModel.toggleSave(it)
-                        } }
-                    )
-                }
+            is FeedViewModel.FeedUiState.Error -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) { Text("Something went wrong") }
+            }
 
-                item {
-                    LaunchedEffect(Unit) {
-                        viewModel.loadMore()
+            is FeedViewModel.FeedUiState.Success -> {
+                val posts = (uiState as FeedUiState.Success).posts
+
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(8.dp)
+                ) {
+
+                    items(posts, key = { it.id }) { post ->
+                        PostItem(
+                            post = post,
+                            onToggleLike = viewModel::toggleLike,
+                            onToggleSave = viewModel::toggleSave
+                        )
+                    }
+
+                    item {
+                        LaunchedEffect(posts.size) {
+                            viewModel.loadMore()
+                        }
                     }
                 }
             }
@@ -135,50 +149,37 @@ fun FeedScreen(
 @Composable
 fun PostItem(
     post: Post,
+    onToggleLike: (Post) -> Unit,
     onToggleSave: (Post) -> Unit,
     withSaveButton: Boolean = true
 ) {
     GlassPostContainer {
-
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Column(Modifier.fillMaxWidth()) {
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Column {
+                    Text(post.authorTag, style = MaterialTheme.typography.labelMedium)
                     Text(
-                        text = post.authorTag,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-
-                    Spacer(Modifier.width(6.dp))
-
-                    Text(
-                        text = "${DateUtils.getRelativeTimeSpanString(post.createdAt)}",
+                        "${DateUtils.getRelativeTimeSpanString(post.createdAt)}",
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.alpha(0.6f)
+                        modifier = Modifier.alpha(0.6f),
+                        fontSize = TextUnit(12f, TextUnitType.Sp)
                     )
                 }
 
-                if (withSaveButton) {
-                    IconButton(
-                        onClick = { onToggleSave(post) },
-                        modifier = Modifier.size(24.dp)
-                    ) {
+                if(withSaveButton) {
+                    IconButton(onClick = { onToggleSave(post) }) {
                         Icon(
-                            painter = painterResource(
-                                if (post.isSaved)
-                                    R.drawable.bookmark_filled
-                                else
-                                    R.drawable.bookmark
+                            painterResource(
+                                if (post.isSaved) R.drawable.bookmark_filled
+                                else R.drawable.bookmark
                             ),
-                            contentDescription = "Save"
+                            contentDescription = null
                         )
                     }
                 }
@@ -186,10 +187,25 @@ fun PostItem(
 
             Spacer(Modifier.height(8.dp))
 
-            Text(
-                text = post.content,
-                style = MaterialTheme.typography.bodyLarge
-            )
+            Text(post.content)
+
+            Spacer(Modifier.height(4.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(1.dp)) {
+
+                IconButton(onClick = { onToggleLike(post) },
+                    modifier = Modifier.size(18.dp)) {
+                    Icon(
+                        painterResource(
+                            if (post.isLiked) R.drawable.liked else R.drawable.not_liked
+                        ),
+                        contentDescription = null
+                    )
+                }
+
+                Text("${post.likesCount}")
+            }
         }
     }
 }

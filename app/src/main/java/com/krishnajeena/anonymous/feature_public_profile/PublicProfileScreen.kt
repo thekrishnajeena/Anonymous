@@ -36,12 +36,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.krishnajeena.anonymous.domain.user.User
+import com.krishnajeena.anonymous.feature_feed.FeedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PublicProfileScreen(
     onBack: () -> Unit,
-    viewModel: PublicProfileViewModel = hiltViewModel()
+    viewModel: PublicProfileViewModel = hiltViewModel(),
+    feedViewModel: FeedViewModel
 ) {
     val user by viewModel.user.collectAsState()
     val posts by viewModel.posts.collectAsState()
@@ -81,7 +83,8 @@ fun PublicProfileScreen(
                     items(posts, key = { it.id }) { post ->
                         PostItem(
                             post = post,
-                            onToggleSave = {},
+                            onToggleSave = {feedViewModel.toggleSave(post)},
+                            onToggleLike = {feedViewModel.toggleLike(post)},
                             withSaveButton = false
                         )
                     }
