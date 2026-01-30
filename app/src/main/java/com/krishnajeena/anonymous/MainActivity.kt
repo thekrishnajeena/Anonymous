@@ -49,6 +49,7 @@ import com.krishnajeena.anonymous.feature_search.SearchScreen
 import com.krishnajeena.anonymous.ui.auth.AuthScreen
 import com.krishnajeena.anonymous.ui.create.CreateScreen
 import com.krishnajeena.anonymous.ui.feed.FeedScreen
+import com.krishnajeena.anonymous.ui.feed.PostDetailScreen
 import com.krishnajeena.anonymous.ui.profile.ProfileScreen
 import com.krishnajeena.anonymous.ui.splash.SplashScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -190,8 +191,15 @@ enum class InternalScreen(
     val label: String
 ){
     Search("search", Icons.Default.Search, "Search"),
-    PublicProfile("profile/{uid}", Icons.Default.Person, "Public Profile")
+    PublicProfile("profile/{uid}", Icons.Default.Person, "Public Profile"),
 
+}
+
+object PostDetailScreeRoute{
+    const val base = "postDetail"
+    const val route = "postDetail/{postId}"
+
+    fun make(postId: String) = "postDetail/$postId"
 }
 
 @Composable
@@ -212,6 +220,7 @@ fun MainNavHost(
             FeedScreen(onSearchClick = {
                 navController.navigate(InternalScreen.Search.route)
             },
+                navController = navController,
                viewModel = feedViewModel )
         }
 
@@ -256,5 +265,16 @@ fun MainNavHost(
         composable(MainScreens.Profile.route) {
             ProfileScreen(onLogout = onLogout)
         }
+
+        composable(
+            route = PostDetailScreeRoute.route,
+        ) {
+            val postId = it.arguments?.getString("postId") ?: ""
+            PostDetailScreen(
+                postId = postId,
+                navController = navController
+            )
+        }
+
     }
 }

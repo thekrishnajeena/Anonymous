@@ -48,10 +48,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import com.airbnb.lottie.compose.*
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.krishnajeena.anonymous.InternalScreen
+import com.krishnajeena.anonymous.PostDetailScreeRoute
 import com.krishnajeena.anonymous.R
 import com.krishnajeena.anonymous.domain.post.Post
 import com.krishnajeena.anonymous.feature_feed.FeedViewModel
@@ -60,7 +63,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun FeedTopBar(
-    onSearchClick: () -> Unit
+    onSearchClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -85,7 +88,7 @@ fun FeedTopBar(
 @Composable
 fun FeedScreen(
     viewModel: FeedViewModel,
-    onSearchClick: () -> Unit
+    onSearchClick: () -> Unit, navController: NavController
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -129,7 +132,11 @@ fun FeedScreen(
                         PostItem(
                             post = post,
                             onToggleLike = viewModel::toggleLike,
-                            onToggleSave = viewModel::toggleSave
+                            onToggleSave = viewModel::toggleSave,
+                            withCommentButton = true,
+                            onToggleComment = {
+                                navController.navigate(PostDetailScreeRoute.make(post.id))
+                            }
                         )
                     }
 
@@ -151,6 +158,8 @@ fun PostItem(
     post: Post,
     onToggleLike: (Post) -> Unit,
     onToggleSave: (Post) -> Unit,
+    onToggleComment: () -> Unit = {},
+    withCommentButton: Boolean = false,
     withSaveButton: Boolean = true
 ) {
     GlassPostContainer {
@@ -192,10 +201,11 @@ fun PostItem(
             Spacer(Modifier.height(4.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(vertical = 3.dp),
                 horizontalArrangement = Arrangement.spacedBy(1.dp)) {
 
                 IconButton(onClick = { onToggleLike(post) },
-                    modifier = Modifier.size(18.dp)) {
+                    modifier = Modifier.size(16.dp)) {
                     Icon(
                         painterResource(
                             if (post.isLiked) R.drawable.liked else R.drawable.not_liked
@@ -203,8 +213,24 @@ fun PostItem(
                         contentDescription = null
                     )
                 }
-
+                Spacer(Modifier.width(1.dp))
                 Text("${post.likesCount}")
+
+                Spacer(Modifier.width(3.dp))
+
+                if(withCommentButton){
+                    IconButton(
+                        onClick = { onToggleComment() },
+                        modifier = Modifier.size(18.dp)
+                    ) {
+                        Icon(
+                            painterResource(
+                                R.drawable.comment
+                            ),
+                            contentDescription = "comments"
+                        )
+                    }
+                }
             }
         }
     }
@@ -231,7 +257,7 @@ fun GlassPostContainer(
                 .fillMaxWidth()
                 .matchParentSize()
                 .clip(RoundedCornerShape(20.dp))
-                .background(Color.Magenta.copy(alpha=0.1f))
+                .background(Color.Magenta.copy(alpha = 0.1f))
                 .blur(45.dp)
                 .padding(10.dp)
         )

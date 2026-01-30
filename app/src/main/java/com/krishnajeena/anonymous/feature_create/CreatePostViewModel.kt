@@ -12,9 +12,20 @@ import com.krishnajeena.anonymous.data.auth.FirebaseAuthRepository
 import com.krishnajeena.anonymous.data.post.FirestorePostRepository
 import com.krishnajeena.anonymous.featureProfile.ProfileViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+
+
+sealed class CreatePostState{
+    object Idle: CreatePostState()
+    object Posting: CreatePostState()
+    object Success: CreatePostState()
+    data class Error(val msg: String): CreatePostState()
+}
+
 
 @HiltViewModel
 class CreatePostViewModel @Inject constructor(
@@ -26,16 +37,25 @@ class CreatePostViewModel @Inject constructor(
     var text by mutableStateOf("")
         private set
 
+    private val _state = MutableStateFlow<CreatePostState>(CreatePostState.Idle)
+    val state =  _state.asStateFlow()
+
     fun onTextChange(newText: String) {
         if (newText.length <= 500) {
             text = newText
         }
     }
 
-    fun submitPost(onSuccess: () -> Unit) {
+    fun submitPost() {
+
+        val currentText = text.trim()
+        if(currentText.isEmpty()) return
+
+        _state.value = CreatePostState.Posting
+
         viewModelScope.launch {
 
-            val firebaseUser = authRepository.currentUser() ?: return@launch
+            val firebaseUser = authRepository.currentUser() ?: throw Exception("Not logged in")
 
             // Load user's anonymous tag from Firestore
             val userDoc = userRepository.getUser(firebaseUser.uid)
@@ -51,8 +71,13 @@ class CreatePostViewModel @Inject constructor(
                 .add(post)
                 .await()
 
-            onSuccess()
+            _state.value = CreatePostState.Success
+
         }
+    }
+
+    fun resetState(){
+        _state.value = CreatePostState.Idle
     }
 
 }

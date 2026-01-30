@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +25,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.krishnajeena.anonymous.feature_create.CreatePostViewModel
+import androidx.compose.runtime.getValue
+import com.krishnajeena.anonymous.feature_create.CreatePostState
 
 @Composable
 fun CreateScreen(
@@ -38,9 +41,22 @@ fun CreateScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val state by viewModel.state.collectAsState()
+
+
     LaunchedEffect(Unit){
         focusRequester.requestFocus()
         keyboardController?.show()
+    }
+
+    LaunchedEffect(state) {
+        when(state){
+            is CreatePostState.Success -> {
+                onPostSuccess()
+                viewModel.resetState()
+            }
+            else -> Unit
+        }
     }
 
     Column(
@@ -67,8 +83,8 @@ fun CreateScreen(
                 onClick = {
                     keyboardController?.hide()
                     focusManager.clearFocus()
-                    viewModel.submitPost(onPostSuccess) },
-                enabled = viewModel.text.isNotBlank()
+                    viewModel.submitPost() },
+                enabled = viewModel.text.isNotBlank() && state !is CreatePostState.Posting
             ) {
                 Text("Post")
             }

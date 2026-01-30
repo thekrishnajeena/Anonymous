@@ -42,6 +42,16 @@ class FirestorePostRepository(
         awaitClose { listener.remove() }
     }
 
+    suspend fun getPostById(postId: String): Post {
+        val snapshot = firestore.collection("posts")
+            .document(postId)
+            .get()
+            .await()
+
+        return snapshot.toPost()
+            ?: throw IllegalStateException("Post not foudn or corrupted: $postId")
+    }
+
     suspend fun fetchFeedPage(
         lastPost: DocumentSnapshot?,
         pageSize: Long = 20
